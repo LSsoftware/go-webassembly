@@ -1,0 +1,151 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>webassembly运行go转码</title>
+    <style>
+        .box {
+            display: flex;
+            width: 200px;
+            flex-wrap: wrap;
+            margin: 100px;
+        }
+        .box-btn {
+            margin: 5px;
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            background-color: darkorange;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .disab {
+            background-color: darkgray;
+        }
+    </style>
+  </head>
+
+  <body>
+    <!-- 加载浏览器运行go的辅助js go官方提供，定义了Go这个类 -->
+    <script src="wasm_exec.js"></script>
+
+    <script>
+      if (!WebAssembly.instantiateStreaming) {
+        // polyfill 方式加载
+        WebAssembly.instantiateStreaming = async (resp, importObject) => {
+          const source = await (await resp).arrayBuffer();
+          return await WebAssembly.instantiate(source, importObject);
+        };
+      }
+    //   // 初始化go
+    //   const go = new Go();
+    //   let mod, inst;
+    //   // webassembly加载go转码 （
+    //   WebAssembly.instantiateStreaming(fetch("go1.wasm"), go.importObject).then(
+    //     result => {
+    //       mod = result.module;
+    //       inst = result.instance;
+    //       // go转码加载完成，按钮可以点击
+    //       document.getElementById("testBtn").disabled = false;
+    //     }
+    //   );
+
+    //   async function run() {
+    //     // 点击按钮，触发go程序
+    //     await go.run(inst);
+    //     inst = await WebAssembly.instantiate(mod, go.importObject);
+    //   }
+
+      const go = new Go();
+      let mod, inst;
+      // webassembly加载go转码 （
+      WebAssembly.instantiateStreaming(fetch("go2.wasm"), go.importObject).then(
+        async result => {
+          mod = result.module;
+          inst = result.instance;
+          await go.run(inst);
+        }
+      );
+
+      var arr = [], arr1 = [];
+      var oprator = '';
+
+      async function equal() {
+        if (oprator != '' && arr.length > 0 && arr1.length > 0) {
+            // 点击按钮，触发go程序
+            if (oprator == '+') {
+                var x = add(arr.join(''), arr1.join(''))
+                arr = `${x}`.split('');
+                console.log(x);
+            } else if (oprator == '-') {
+                var x = subtract(arr.join(''), arr1.join(''))
+                arr = `${x}`.split('');
+                console.log(x);
+            } else if (oprator == '*') {
+                var x = multiplication(arr.join(''), arr1.join(''))
+                arr = `${x}`.split('');
+                console.log(x);
+            } else if (oprator == '/') {
+                var x = division(arr.join(''), arr1.join(''))
+                arr = `${x}`.split('');
+                console.log(x);
+            }
+        }
+      }
+      function clear() {
+        arr = [];
+        arr1 = [];
+        oprator = '';
+      }
+      function addjs() {
+        oprator = '+';
+        arr1 = [];
+      }
+      function subtractjs() {
+        oprator = '-';
+        arr1 = [];
+      }
+      function multijs() {
+        oprator = '*';
+        arr1 = [];
+      }
+      function divisionjs() {
+        oprator = '/';
+        arr1 = [];
+      }
+      function addNumber(n) {
+        if (oprator == '') {
+            arr.push(n);
+        } else {
+            arr1.push(n);
+        }
+      }
+    </script>
+
+    <!-- <button onClick="run()" id="testBtn" disabled>Test</button> -->
+
+    <div class="box">
+        <div class="box-btn" onclick="clear()">AC</div>
+        <div class="box-btn disab">+/-</div>
+        <div class="box-btn disab">%</div>
+        <div class="box-btn" onclick="divisionjs()">/</div>
+        <div class="box-btn" onclick="addNumber(7)">7</div>
+        <div class="box-btn" onclick="addNumber(8)">8</div>
+        <div class="box-btn" onclick="addNumber(9)">9</div>
+        <div class="box-btn" onclick="multijs()">x</div>
+        <div class="box-btn" onclick="addNumber(4)">4</div>
+        <div class="box-btn" onclick="addNumber(5)">5</div>
+        <div class="box-btn" onclick="addNumber(6)">6</div>
+        <div class="box-btn" onclick="subtractjs()">-</div>
+        <div class="box-btn" onclick="addNumber(1)">1</div>
+        <div class="box-btn" onclick="addNumber(2)">2</div>
+        <div class="box-btn" onclick="addNumber(3)">3</div>
+        <div class="box-btn" onclick="addjs()">+</div>
+        <div class="box-btn" style="width: 90px" onclick="addNumber()">0</div>
+        <div class="box-btn disab">.</div>
+        <div class="box-btn" onclick="equal()">=</div>
+    </div>
+  </body>
+</html>
